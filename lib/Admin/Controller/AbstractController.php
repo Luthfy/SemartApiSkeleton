@@ -30,9 +30,7 @@ abstract class AbstractController extends Base
         private readonly ServiceInterface $service,
         private readonly CacheFactory     $cache,
         private readonly ?Paginator       $paginator = null,
-    )
-    {
-    }
+    ) {}
 
     #[\Override]
     protected function renderView(string $view, array $parameters = []): string
@@ -119,7 +117,7 @@ abstract class AbstractController extends Base
             }
         } else {
             $result[] = $variable;
-            foreach (new ObjectReflector()->getProperties($variable) as $value) {
+            foreach ((new ObjectReflector())->getProperties($variable) as $value) {
                 if (!\is_array($value) && !\is_object($value) && !\is_resource($value)) {
                     continue;
                 }

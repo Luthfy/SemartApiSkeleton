@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use KejawenLab\ApiSkeleton\SemartApiSkeleton;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @author Muhamad Surya Iksanudin<surya.iksanudin@gmail.com>
@@ -19,9 +20,7 @@ final class CacheFactory
         private readonly RequestStack           $requestStack,
         private readonly CacheItemPoolInterface $cache,
         private readonly EntityManagerInterface $entityManager,
-    )
-    {
-    }
+    ) {}
 
     public function invalidQueryCache(): void
     {
@@ -152,5 +151,59 @@ final class CacheFactory
         }
 
         return sprintf('%s_%s', sha1($request->getPathInfo()), sha1(serialize($request->query->all())));
+    }
+
+    public function getPageCache(): array
+    {
+        $cacheKey = $this->getCacheKey();
+        if ('' === $cacheKey) {
+            return [];
+        }
+
+        $cacheItem = $this->cache->getItem($cacheKey);
+        if (!$cacheItem->isHit()) {
+            return [];
+        }
+
+        return $cacheItem->get();
+    }
+
+    public function invalidPageCache(): void
+    {
+        $cacheKey = $this->getCacheKey();
+        if ('' === $cacheKey) {
+            return;
+        }
+
+        $this->cache->deleteItem($cacheKey);
+    }
+
+    public function invalidViewCache(): void
+    {
+        $deviceId = $this->getDeviceId();
+        if ('' === $deviceId) {
+            return;
+        }
+
+        $this->cache->deleteItem($deviceId);
+    }
+
+
+    public function setPageCache(Response $response, string $period = 'PT10M'): void
+    {
+        $cacheKey = $this->getCacheKey();
+        if ('' === $cacheKey) {
+            return;
+        }
+
+        $cacheItem = $this->cache->getItem($cacheKey);
+        $cacheItem->set([
+            'content' => $response->getContent(),
+            'headers' => $response->headers->all(),
+            'status' => $response->getStatusCode(),
+        ]);
+        $cacheItem->expiresAfter(new DateInterval($period));
+
+        $this->cache->save($cacheItem);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace KejawenLab\ApiSkeleton\EventSubscriber;
 
+use KejawenLab\ApiSkeleton\SemartApiSkeleton;
 use KejawenLab\ApiSkeleton\Util\CacheFactory;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,9 +16,7 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
  */
 final class ViewCacheSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private readonly CacheFactory $cache)
-    {
-    }
+    public function __construct(private readonly CacheFactory $cache) {}
 
     public function serve(RequestEvent $event): void
     {
